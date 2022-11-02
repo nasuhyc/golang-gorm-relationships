@@ -9,13 +9,22 @@ import (
 func Setup(app *fiber.App) {
 
 	api := app.Group("/api") // /api
-	//User Group
-	user := api.Group("/user")
-	user.Get("/gets", controllers.UserIndex)
-	user.Post("/", controllers.UserStore)
-	user.Post("/update/:id", controllers.UserUpdate)
-	user.Get("/:id", controllers.UserGetId)
-	user.Delete("/delete/:id", controllers.UserDestroy)
-	//User Group End
+	//Artist Group
+	artist := api.Group("/artist")
+	artist.Get("/gets", controllers.ArtistIndex)
+	artist.Post("/", controllers.ArtistStore)
+	artist.Post("/update/:id", controllers.ArtistUpdate)
+	artist.Get("/:id", controllers.ArtistGetId)
+	artist.Delete("/delete/:id", controllers.ArtistDestroy)
+	//Artist Group End
+
+	//Song Group
+	song := api.Group("/song")
+	song.Get("/gets", controllers.SongIndex)
+	song.Post("/", controllers.SongStore)
+	song.Post("/update/:id", controllers.SongUpdate)
+	song.Get("/:id", controllers.SongGetId)
+	song.Delete("/delete/:id", controllers.SongDestroy)
+	//Song Group
 
 }
