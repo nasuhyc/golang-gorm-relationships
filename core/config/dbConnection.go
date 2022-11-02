@@ -35,7 +35,11 @@ func Connect() {
 func AutoMigrate(connection *gorm.DB) {
 
 	connection.Debug().AutoMigrate(
-		&models.User{},
+		&models.Artist{},
+		&models.Song{},
+		// &models.ArtistAtSong{},
+		&models.Album{},
+		&models.SongAtAlbum{},
 	)
 	fmt.Println("Tablolar Oluşturuldu")
 
