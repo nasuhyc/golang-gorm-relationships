@@ -3,10 +3,12 @@ package controllers
 import (
 	"golang-gorm-relationships/config"
 	"golang-gorm-relationships/models"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
 
+//DESC - Get all artists and their songs
 func ArtistIndex(c *fiber.Ctx) error {
 	var artists []models.Artist
 	err := config.DB.Model(&models.Artist{}).Preload("Songs").Find(&artists).Error
@@ -16,9 +18,11 @@ func ArtistIndex(c *fiber.Ctx) error {
 	return c.Status(200).JSON(artists)
 
 }
+
+//DESC - Create a new artist and add songs to it
 func ArtistStore(c *fiber.Ctx) error {
 	type FullData struct {
-		ID      float64       `gorm:"primaryKey"`
+		ID      uint          `gorm:"primaryKey"`
 		Name    string        `json:"name"`
 		Surname string        `json:"surname"`
 		Songs   []models.Song `json:"songs"`
@@ -28,9 +32,6 @@ func ArtistStore(c *fiber.Ctx) error {
 	if err := c.BodyParser(&fulldata); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-	// if err := c.BodyParser(&artist); err != nil {
-	// 	return c.Status(400).JSON(err.Error())
-	// }
 
 	artist := models.Artist{
 		Name:    fulldata.Name,
@@ -38,49 +39,50 @@ func ArtistStore(c *fiber.Ctx) error {
 		ID:      fulldata.ID,
 		Songs:   fulldata.Songs,
 	}
-	config.DB.Omit("Song").Save(&artist)
 
-	// artist = models.Artist{
-	// 	Name:    artist.Name,
-	// 	Surname: artist.Surname,
-	// }
-	// config.DB.Create(&artist)
-	// config.DB.Model(&song).Association("Artists").Append(&artist)
+	config.DB.Omit("Song").Save(&artist)
 	return c.Status(200).JSON(fiber.Map{"data": artist, "message": "Create artist successfully."})
 
-	// var artistData map[string]string
-	// if err := c.BodyParser(&artistData); err != nil {
-	// 	return c.Status(400).JSON(err.Error())
-	// }
-
-	// artist := models.Artist{
-	// 	Name:    artistData["name"],
-	// 	Surname: artistData["surname"],
-	// }
-	// config.DB.Create(&artist)
-	// return c.Status(200).JSON(fiber.Map{"data": artist, "message": "Create artist successfully."})
-
 }
+
+//DESC - Update a artist and replace songs to it
 func ArtistUpdate(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var artist models.Artist
-	config.DB.Find(&artist, id)
-	if err := c.BodyParser(&artist); err != nil {
-		return c.Status(400).JSON(err.Error())
+	U, err := strconv.ParseUint(id, 0, 64)
+	if err != nil {
+		return err
 	}
-	config.DB.Save(&artist)
-	return c.JSON(fiber.Map{"data": &artist, "message": "Updated is Successfully."})
+	newid := uint(U)
+	var client_query *models.Artist
+	config.DB.Where("id = ?", id).Preload("Songs").First(&client_query)
+	config.DB.Model(&models.Artist{ID: newid}).Association("Songs").Replace(&client_query.Songs)
+	return c.Status(200).JSON(fiber.Map{"data": &client_query, "message": "Updated is Successfully."})
 }
+
+//DESC - Bringing artists and songs according to ID
+
 func ArtistGetId(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var artist models.Artist
-	config.DB.Find(&artist, id)
-	return c.Status(200).JSON(&artist)
+	var artists []models.Artist
+	err := config.DB.Model(&models.Artist{}).Preload("Songs").Find(&artists, id).Error
+	if err != nil {
+		return c.Status(400).JSON(err)
+	}
+	return c.Status(200).JSON(artists)
+
 }
+
+//DESC - Delete a artist and delete songs to it
 func ArtistDestroy(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var artist models.Artist
-	config.DB.Find(&artist, id).Delete(&artist)
-	return c.Status(200).JSON(fiber.Map{"data": &artist, "message": "Deleted is Successfully."})
+	U, err := strconv.ParseUint(id, 0, 64)
+	if err != nil {
+		return err
+	}
+	newid := uint(U)
+	var client_query *models.Artist
+	config.DB.Where("id = ?", id).Preload("Songs").First(&client_query).Delete(client_query)
+	config.DB.Model(&models.Artist{ID: newid}).Association("Songs").Delete(&client_query.Songs)
+	return c.Status(200).JSON(fiber.Map{"data": &client_query, "message": "Deleted is Successfully."})
 
 }
