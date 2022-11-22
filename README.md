@@ -36,7 +36,7 @@ Install required packages
   go mod tidy
 ```
 
-Sunucuyu çalıştırın
+Run the server
 
 ```bash
   go run main.go or air
