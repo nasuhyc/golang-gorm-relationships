@@ -12,9 +12,10 @@ Postman and postgres need to be installed.
 
 ```bash 
   https://www.postman.com/downloads/
-  
+ ``` 
+ ```bash 
   https://www.postgresql.org/download/windows/
-```
+ ``` 
     
 ## Run it on your computer
 
